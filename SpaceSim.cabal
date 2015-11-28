@@ -18,8 +18,7 @@ executable SpaceSim
   -- other-extensions:    
   build-depends:       base >= 4 && < 5,
                        -- opengl and rendering
-                       sdl2 >= 2 && < 3, OpenGL >= 2 && < 3,
-                       GLUtil >= 0.8 && < 0.9,
+                       sdl2 >= 2 && < 3, gl >= 0.7.7 && < 0.10.0,
                        -- lenses and libs depending on lenses
                        lens >= 4 && < 5, linear >= 1.20 && < 2,
                        -- util

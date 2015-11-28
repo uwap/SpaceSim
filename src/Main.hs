@@ -3,7 +3,6 @@ module Main where
 
 import Control.Lens
 import Control.Monad.State.Strict
-import Graphics.Rendering.OpenGL
 import qualified Data.Text as T
 import Linear hiding (ortho)
 import qualified SDL
@@ -53,18 +52,19 @@ render :: GameT IO ()
 render = do
   let coords = [V2 x y | x <- [0,64..640], y <- [0,64..640]]
   texs <- use (resources . textures)
-  liftIO $ do
-    textureBinding Texture2D $= texs ^. at "Rockfloor.png"
-    renderPrimitive Quads $ mapM_ renderTile coords
-    textureBinding Texture2D $= Nothing
+  bindTexture2D (texs ^. at "Rockfloor.png")
+  glBegin GL_QUADS
+  mapM_ renderTile coords
+  glEnd
+  bindTexture2D Nothing
 
-renderTile :: V2 GLfloat -> IO ()
+renderTile :: MonadIO m => V2 Float -> m ()
 renderTile coord = do
-  texCoord $ TexCoord2 0 (0 :: GLint)
-  vertex   $ Vertex2 (coord^._x) (coord^._y)
-  texCoord $ TexCoord2 0 (1 :: GLint)
-  vertex   $ Vertex2 (coord^._x) (coord^._y + 64)
-  texCoord $ TexCoord2 1 (1 :: GLint)
-  vertex   $ Vertex2 (coord^._x + 64) (coord^._y + 64)
-  texCoord $ TexCoord2 1 (0 :: GLint)
-  vertex   $ Vertex2 (coord^._x + 64) (coord^._y)
+  glTexCoord2f 0 0
+  glVertex2f (coord^._x) (coord^._y)
+  glTexCoord2f 0 1
+  glVertex2f (coord^._x) (coord^._y + 64)
+  glTexCoord2f 1 1
+  glVertex2f (coord^._x + 64) (coord^._y + 64)
+  glTexCoord2f 1 0
+  glVertex2f (coord^._x + 64) (coord^._y)

@@ -1,16 +1,22 @@
-module Init.OpenGL where
+module Init.OpenGL (
+  initGL,
+  module Graphics.GL.Standard30,
+  module Graphics.GL.Types
+) where
 
-import Graphics.Rendering.OpenGL
+import Control.Monad.IO.Class
+import Graphics.GL.Standard30
+import Graphics.GL.Types
 
-initGL :: IO ()
+initGL :: MonadIO m => m ()
 initGL = do
-  texture Texture2D $= Enabled
+  glEnable GL_TEXTURE_2D
   initProjection
 
-initProjection :: IO ()
+initProjection :: MonadIO m => m ()
 initProjection = do
-  matrixMode $= Projection
-  loadIdentity
-  ortho 0 640 480 0 (-1) 1
-  matrixMode $= Modelview 0
-  loadIdentity
+  glMatrixMode GL_PROJECTION
+  glLoadIdentity
+  glOrtho 0 640 480 0 (-1) 1
+  glMatrixMode GL_MODELVIEW
+  glLoadIdentity
