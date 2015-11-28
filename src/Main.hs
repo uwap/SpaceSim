@@ -13,7 +13,7 @@ import Resources
 
 openGLConfig :: SDL.OpenGLConfig
 openGLConfig = SDL.defaultOpenGL
-             { SDL.glProfile = SDL.Compatibility SDL.Debug 3 2 }
+             { SDL.glProfile = SDL.Compatibility SDL.Debug 3 0 }
 
 windowConfig :: (T.Text, SDL.WindowConfig)
 windowConfig = ("Space Sim", SDL.defaultWindow
