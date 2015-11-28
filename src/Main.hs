@@ -33,13 +33,24 @@ main = do
   loadIdentity
 
   SDL.showWindow window
-  mainLoop
+  mainLoop window
   SDL.glDeleteContext context
   SDL.destroyWindow window
 
-mainLoop :: IO ()
-mainLoop = do
+mainLoop :: SDL.Window -> IO ()
+mainLoop window = do
+  render
+  SDL.glSwapWindow window
   event <- SDL.pollEvent
   case SDL.eventPayload <$> event of
     Just SDL.QuitEvent -> return ()
-    _                  -> mainLoop
+    _                  -> mainLoop window
+  
+
+render :: IO ()
+render =
+  renderPrimitive Quads $ do
+    vertex $ Vertex2 0 (0 :: GLfloat)
+    vertex $ Vertex2 0 (480 :: GLfloat)
+    vertex $ Vertex2 640 (480 :: GLfloat)
+    vertex $ Vertex2 640 (0 :: GLfloat)
