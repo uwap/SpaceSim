@@ -8,6 +8,7 @@ import qualified Data.Text as T
 import Linear hiding (ortho)
 import qualified SDL
 
+import Init.OpenGL
 import Game
 import Resources
 
@@ -29,13 +30,7 @@ main = do
   context <- SDL.glCreateContext window
   SDL.glMakeCurrent window context
 
-  texture Texture2D $= Enabled
-
-  matrixMode $= Projection
-  loadIdentity
-  ortho 0 640 480 0 (-1) 1
-  matrixMode $= Modelview 0
-  loadIdentity
+  initGL
 
   SDL.showWindow window
   runGameT $ do
