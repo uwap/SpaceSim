@@ -21,10 +21,10 @@ executable SpaceSim
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9,
                        -- opengl and rendering
-                       sdl2 == 2.1.0, OpenGL == 2.13.1.0,
+                       sdl2 == 2.1.0, OpenGL == 2.13.1.0, GLUtil == 0.8.8,
                        -- lenses and libs depending on lenses
                        lens == 4.13, linear == 1.20.2,
                        -- util
-                       text == 1.2.1.3
+                       text == 1.2.1.3, filepath == 1.4.0.0
   hs-source-dirs:      src
   default-language:    Haskell2010

@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import System.FilePath
+import Control.Lens
+import Graphics.GLUtil
 import Graphics.Rendering.OpenGL
 import qualified Data.Text as T
 import Linear hiding (ortho)
@@ -33,24 +36,41 @@ main = do
   loadIdentity
 
   SDL.showWindow window
-  mainLoop window
+  mainLoop window =<< loadTextureFile "Rockfloor.png"
   SDL.glDeleteContext context
   SDL.destroyWindow window
 
-mainLoop :: SDL.Window -> IO ()
-mainLoop window = do
-  render
+mainLoop :: SDL.Window -> Maybe TextureObject -> IO ()
+mainLoop window tex = do
+  render tex
   SDL.glSwapWindow window
   event <- SDL.pollEvent
   case SDL.eventPayload <$> event of
     Just SDL.QuitEvent -> return ()
-    _                  -> mainLoop window
+    _                  -> mainLoop window tex
   
 
-render :: IO ()
-render =
-  renderPrimitive Quads $ do
-    vertex $ Vertex2 0 (0 :: GLfloat)
-    vertex $ Vertex2 0 (480 :: GLfloat)
-    vertex $ Vertex2 640 (480 :: GLfloat)
-    vertex $ Vertex2 640 (0 :: GLfloat)
+render :: Maybe TextureObject -> IO ()
+render tex = do
+  let coords = [V2 x y | x <- [0,64..640], y <- [0,64..640]]
+  textureBinding Texture2D $= tex
+  renderPrimitive Quads $ mapM_ renderTile coords
+  textureBinding Texture2D $= Nothing
+
+renderTile :: V2 GLfloat -> IO ()
+renderTile coord = do
+  texCoord $ TexCoord2 0 (0 :: GLint)
+  vertex   $ Vertex2 (coord^._x) (coord^._y)
+  texCoord $ TexCoord2 0 (1 :: GLint)
+  vertex   $ Vertex2 (coord^._x) (coord^._y + 64)
+  texCoord $ TexCoord2 1 (1 :: GLint)
+  vertex   $ Vertex2 (coord^._x + 64) (coord^._y + 64)
+  texCoord $ TexCoord2 1 (0 :: GLint)
+  vertex   $ Vertex2 (coord^._x + 64) (coord^._y)
+
+loadTextureFile :: FilePath -> IO (Maybe TextureObject)
+loadTextureFile file = do
+  tex <- readTexture ("res" </> file)
+  textureFilter Texture2D $= ((Linear', Nothing), Linear')
+  texture2DWrap $= (Mirrored, ClampToEdge)
+  return $ either (const Nothing) Just tex
