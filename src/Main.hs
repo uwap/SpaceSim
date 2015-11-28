@@ -47,8 +47,8 @@ main = do
 mainLoop :: SDL.Window -> GameT IO ()
 mainLoop window = do
   render
-  liftIO $ SDL.glSwapWindow window
-  event <- liftIO SDL.pollEvent
+  SDL.glSwapWindow window
+  event <- SDL.pollEvent
   case SDL.eventPayload <$> event of
     Just SDL.QuitEvent -> return ()
     _                  -> mainLoop window
