@@ -1,13 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import System.FilePath
 import Control.Lens
-import Graphics.GLUtil
+import Control.Monad.State.Strict
 import Graphics.Rendering.OpenGL
 import qualified Data.Text as T
 import Linear hiding (ortho)
 import qualified SDL
+
+import Game
+import Resources
 
 openGLConfig :: SDL.OpenGLConfig
 openGLConfig = SDL.defaultOpenGL
@@ -36,26 +38,30 @@ main = do
   loadIdentity
 
   SDL.showWindow window
-  mainLoop window =<< loadTextureFile "Rockfloor.png"
+  runGameT $ do
+    loadTextureResource resources "Rockfloor.png"
+    mainLoop window
   SDL.glDeleteContext context
   SDL.destroyWindow window
 
-mainLoop :: SDL.Window -> Maybe TextureObject -> IO ()
-mainLoop window tex = do
-  render tex
-  SDL.glSwapWindow window
-  event <- SDL.pollEvent
+mainLoop :: SDL.Window -> GameT IO ()
+mainLoop window = do
+  render
+  liftIO $ SDL.glSwapWindow window
+  event <- liftIO SDL.pollEvent
   case SDL.eventPayload <$> event of
     Just SDL.QuitEvent -> return ()
-    _                  -> mainLoop window tex
+    _                  -> mainLoop window
   
 
-render :: Maybe TextureObject -> IO ()
-render tex = do
+render :: GameT IO ()
+render = do
   let coords = [V2 x y | x <- [0,64..640], y <- [0,64..640]]
-  textureBinding Texture2D $= tex
-  renderPrimitive Quads $ mapM_ renderTile coords
-  textureBinding Texture2D $= Nothing
+  texs <- use (resources . textures)
+  liftIO $ do
+    textureBinding Texture2D $= texs ^. at "Rockfloor.png"
+    renderPrimitive Quads $ mapM_ renderTile coords
+    textureBinding Texture2D $= Nothing
 
 renderTile :: V2 GLfloat -> IO ()
 renderTile coord = do
@@ -67,10 +73,3 @@ renderTile coord = do
   vertex   $ Vertex2 (coord^._x + 64) (coord^._y + 64)
   texCoord $ TexCoord2 1 (0 :: GLint)
   vertex   $ Vertex2 (coord^._x + 64) (coord^._y)
-
-loadTextureFile :: FilePath -> IO (Maybe TextureObject)
-loadTextureFile file = do
-  tex <- readTexture ("res" </> file)
-  textureFilter Texture2D $= ((Linear', Nothing), Linear')
-  texture2DWrap $= (Mirrored, ClampToEdge)
-  return $ either (const Nothing) Just tex
