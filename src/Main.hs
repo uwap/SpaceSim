@@ -8,6 +8,7 @@ import Linear hiding (ortho)
 import qualified SDL
 
 import Init.OpenGL
+import Init.Resources
 import Game
 import Resources
 
@@ -19,20 +20,28 @@ windowConfig = ("Space Sim", SDL.defaultWindow
                })
 
 main :: IO ()
-main = runGameT initGame
+main = runGameT mainGame
 
-initGame :: GameT IO ()
-initGame = do
+mainGame :: GameT IO ()
+mainGame = do
+  (window, context) <- initWindow
+  initResources
+  destroyGame window context
+
+initWindow :: MonadIO m => m (SDL.Window, SDL.GLContext)
+initWindow = do
   SDL.initialize [SDL.InitVideo]
   window <- uncurry SDL.createWindow windowConfig
   context <- initGL window
   SDL.showWindow window
-  loadTextureResource resources "Rockfloor.png"
-  mainLoop window
+  return (window, context)
+  
+destroyGame :: MonadIO m => SDL.Window -> SDL.GLContext -> m ()
+destroyGame window context = do
   SDL.glDeleteContext context
   SDL.destroyWindow window
 
-mainLoop :: SDL.Window -> GameT IO ()
+mainLoop :: MonadIO m => SDL.Window -> GameT m ()
 mainLoop window = do
   render
   SDL.glSwapWindow window
@@ -42,7 +51,7 @@ mainLoop window = do
     _                  -> mainLoop window
   
 
-render :: GameT IO ()
+render :: MonadIO m => GameT m ()
 render = do
   let coords = [V2 x y | x <- [0,64..640], y <- [0,64..640]]
   texs <- use (resources . textures)
