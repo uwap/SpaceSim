@@ -11,10 +11,6 @@ import Init.OpenGL
 import Game
 import Resources
 
-openGLConfig :: SDL.OpenGLConfig
-openGLConfig = SDL.defaultOpenGL
-             { SDL.glProfile = SDL.Compatibility SDL.Debug 3 0 }
-
 windowConfig :: (T.Text, SDL.WindowConfig)
 windowConfig = ("Space Sim", SDL.defaultWindow
                { SDL.windowInitialSize = V2 640 480
@@ -23,18 +19,16 @@ windowConfig = ("Space Sim", SDL.defaultWindow
                })
 
 main :: IO ()
-main = do
+main = runGameT initGame
+
+initGame :: GameT IO ()
+initGame = do
   SDL.initialize [SDL.InitVideo]
   window <- uncurry SDL.createWindow windowConfig
-  context <- SDL.glCreateContext window
-  SDL.glMakeCurrent window context
-
-  initGL
-
+  context <- initGL window
   SDL.showWindow window
-  runGameT $ do
-    loadTextureResource resources "Rockfloor.png"
-    mainLoop window
+  loadTextureResource resources "Rockfloor.png"
+  mainLoop window
   SDL.glDeleteContext context
   SDL.destroyWindow window
 

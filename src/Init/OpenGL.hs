@@ -1,5 +1,5 @@
 module Init.OpenGL (
-  initGL,
+  initGL, openGLConfig,
   module Graphics.GL.Standard30,
   module Graphics.GL.Types
 ) where
@@ -7,11 +7,19 @@ module Init.OpenGL (
 import Control.Monad.IO.Class
 import Graphics.GL.Standard30
 import Graphics.GL.Types
+import qualified SDL
 
-initGL :: MonadIO m => m ()
-initGL = do
+openGLConfig :: SDL.OpenGLConfig
+openGLConfig = SDL.defaultOpenGL
+             { SDL.glProfile = SDL.Compatibility SDL.Debug 3 0 }
+             
+initGL :: MonadIO m => SDL.Window -> m SDL.GLContext
+initGL window = do
+  context <- SDL.glCreateContext window
+  SDL.glMakeCurrent window context
   glEnable GL_TEXTURE_2D
   initProjection
+  return context
 
 initProjection :: MonadIO m => m ()
 initProjection = do
