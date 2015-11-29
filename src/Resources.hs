@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Resources where
 
 import Codec.Picture
@@ -22,12 +23,20 @@ makeLenses ''Resources
 mkResources :: Resources
 mkResources = Resources empty
 
-unsafeImageData :: DynamicImage -> IO ()
-unsafeImageData (ImageRGB8 i)   = V.unsafeWith (imageData i) (glTexImage2D GL_TEXTURE_2D 0 GL_RGB  (fromIntegral $ imageWidth i) (fromIntegral $ imageHeight i) 0 GL_RGB  GL_UNSIGNED_BYTE  . castPtr)
-unsafeImageData (ImageRGB16 i)  = V.unsafeWith (imageData i) (glTexImage2D GL_TEXTURE_2D 0 GL_RGB  (fromIntegral $ imageWidth i) (fromIntegral $ imageHeight i) 0 GL_RGB  GL_UNSIGNED_SHORT . castPtr)
-unsafeImageData (ImageRGBA8 i)  = V.unsafeWith (imageData i) (glTexImage2D GL_TEXTURE_2D 0 GL_RGBA (fromIntegral $ imageWidth i) (fromIntegral $ imageHeight i) 0 GL_RGBA GL_UNSIGNED_BYTE  . castPtr)
-unsafeImageData (ImageRGBA16 i) = V.unsafeWith (imageData i) (glTexImage2D GL_TEXTURE_2D 0 GL_RGBA (fromIntegral $ imageWidth i) (fromIntegral $ imageHeight i) 0 GL_RGBA GL_UNSIGNED_SHORT . castPtr)
-unsafeImageData _               = error "uwap was too lazy"
+unsafeImageData :: MonadIO m => DynamicImage -> m ()
+unsafeImageData di = liftIO $ case di of
+    ImageRGB8   i -> apply i GL_RGB  GL_RGB  GL_UNSIGNED_BYTE
+    ImageRGB16  i -> apply i GL_RGB  GL_RGB  GL_UNSIGNED_SHORT
+    ImageRGBA8  i -> apply i GL_RGBA GL_RGBA GL_UNSIGNED_BYTE
+    ImageRGBA16 i -> apply i GL_RGBA GL_RGBA GL_UNSIGNED_SHORT
+    _ -> error "uwap was too lazy"
+  where
+    {-# INLINE apply #-}
+    apply i internalformat format size = V.unsafeWith (imageData i) $ \ptr ->
+      let uptr   = castPtr ptr
+          width  = fromIntegral (imageWidth i)
+          height = fromIntegral (imageHeight i)
+      in glTexImage2D GL_TEXTURE_2D 0 internalformat width height 0 format size uptr
 
 loadPng :: MonadIO m => FilePath -> m (Maybe String)
 loadPng file = liftIO $ do
