@@ -26,6 +26,7 @@ mainGame :: GameT IO ()
 mainGame = do
   (window, context) <- initWindow
   initResources
+  mainLoop window
   destroyGame window context
 
 initWindow :: MonadIO m => m (SDL.Window, SDL.GLContext)
