@@ -54,7 +54,7 @@ mainLoop window = do
 
 render :: MonadIO m => GameT m ()
 render = do
-  let coords = [V2 x y | x <- [0,64..640], y <- [0,64..640]]
+  let coords = [V2 x y | x <- [0,32..640], y <- [0,32..640]]
   texs <- use (resources . textures)
   bindTexture2D (texs ^. at "Rockfloor.png")
   glBegin GL_QUADS
@@ -67,8 +67,8 @@ renderTile coord = do
   glTexCoord2f 0 0
   glVertex2f (coord^._x) (coord^._y)
   glTexCoord2f 0 1
-  glVertex2f (coord^._x) (coord^._y + 64)
+  glVertex2f (coord^._x) (coord^._y + 32)
   glTexCoord2f 1 1
-  glVertex2f (coord^._x + 64) (coord^._y + 64)
+  glVertex2f (coord^._x + 32) (coord^._y + 32)
   glTexCoord2f 1 0
-  glVertex2f (coord^._x + 64) (coord^._y)
+  glVertex2f (coord^._x + 32) (coord^._y)
