@@ -16,12 +16,20 @@ import qualified Data.Vector.Storable as V
 import System.FilePath
 import Init.OpenGL
 
+data Texture = Bind GLuint
+
 data Resources = Resources
-               { _textures :: Map String GLuint }
+               { _textures :: Map String Texture }
 makeLenses ''Resources
 
 mkResources :: Resources
 mkResources = Resources empty
+
+toTexture :: GLuint -> Texture
+toTexture = Bind
+
+fromTexture :: Texture -> GLuint
+fromTexture (Bind h) = h
 
 unsafeImageData :: MonadIO m => DynamicImage -> m ()
 unsafeImageData di = liftIO $ case di of
@@ -65,7 +73,7 @@ loadTextureResource :: (MonadState s m, MonadIO m) =>
                     Lens' s Resources -> FilePath -> m ()
 loadTextureResource res file = do
   tex <- loadTexturePure file
-  res . textures . at file .= tex
+  res . textures . at file .= fmap toTexture tex
 
-bindTexture2D :: MonadIO m => Maybe GLuint -> m ()
-bindTexture2D = glBindTexture GL_TEXTURE_2D . fromMaybe 0
+bindTexture2D :: MonadIO m => Maybe Texture -> m ()
+bindTexture2D = glBindTexture GL_TEXTURE_2D . fromTexture . fromMaybe (Bind 0)
