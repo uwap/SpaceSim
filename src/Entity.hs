@@ -18,8 +18,8 @@ data Entity = Entity { _coord   :: !(V2 Double)
                      }
 makeLenses ''Entity
 
-tile :: V2 Double -> Texture -> Entity
-tile coord tex = Entity coord (V2 64 64) 0 (Just tex) pure
+tile :: V2 Double -> V2 Double -> Maybe Texture -> Entity
+tile coord size tex = Entity coord size 0 tex pure
 
 updateAll :: (MonadState s m, Traversable t) => Lens' s (t e) -> Lens' e (e -> m e) -> m ()
 updateAll entities update = do
