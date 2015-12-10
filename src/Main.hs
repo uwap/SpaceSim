@@ -58,11 +58,11 @@ render = do
   texs <- use (resources . textures)
   let tex      = texs ^. at "Rockfloor.png"
       entities = [tile (V2 x y) (V2 32 32) tex | x <- [0,32..640], y <- [0,32..640]]
-  bindTexture2D tex
+  tex & bind
   glBegin GL_QUADS
   mapM_ renderEntity entities
   glEnd
-  bindTexture2D Nothing
+  bind Nothing
 
 renderEntity :: MonadIO m => Entity -> m ()
 renderEntity entity = do
