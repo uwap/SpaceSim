@@ -10,6 +10,7 @@ import qualified SDL
 import Init.OpenGL
 import Init.Resources
 import Game
+import Entity
 import Resources
 
 windowConfig :: (T.Text, SDL.WindowConfig)
@@ -54,21 +55,22 @@ mainLoop window = do
 
 render :: MonadIO m => GameT m ()
 render = do
-  let coords = [V2 x y | x <- [0,32..640], y <- [0,32..640]]
   texs <- use (resources . textures)
-  bindTexture2D (texs ^. at "Rockfloor.png")
+  let tex      = texs ^. at "Rockfloor.png"
+      entities = [tile (V2 x y) (V2 32 32) tex | x <- [0,32..640], y <- [0,32..640]]
+  tex & bind
   glBegin GL_QUADS
-  mapM_ renderTile coords
+  mapM_ renderEntity entities
   glEnd
-  bindTexture2D Nothing
+  bind Nothing
 
-renderTile :: MonadIO m => V2 Float -> m ()
-renderTile coord = do
+renderEntity :: MonadIO m => Entity -> m ()
+renderEntity entity = do
   glTexCoord2f 0 0
-  glVertex2f (coord^._x) (coord^._y)
+  glVertex2d (entity^.coord._x) (entity^.coord._y)
   glTexCoord2f 0 1
-  glVertex2f (coord^._x) (coord^._y + 32)
+  glVertex2d (entity^.coord._x) (entity^.coord._y + entity^.size._y)
   glTexCoord2f 1 1
-  glVertex2f (coord^._x + 32) (coord^._y + 32)
+  glVertex2d (entity^.coord._x + entity^.size._x) (entity^.coord._y + entity^.size._y)
   glTexCoord2f 1 0
-  glVertex2f (coord^._x + 32) (coord^._y)
+  glVertex2d (entity^.coord._x + entity^.size._x) (entity^.coord^._y)

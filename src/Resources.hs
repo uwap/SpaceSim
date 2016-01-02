@@ -75,5 +75,5 @@ loadTextureResource res file = do
   tex <- loadTexturePure file
   res . textures . at file .= fmap toTexture tex
 
-bindTexture2D :: MonadIO m => Maybe Texture -> m ()
-bindTexture2D = glBindTexture GL_TEXTURE_2D . fromTexture . fromMaybe (Bind 0)
+bind :: MonadIO m => Maybe Texture -> m ()
+bind = glBindTexture GL_TEXTURE_2D . fromTexture . fromMaybe (Bind 0)
