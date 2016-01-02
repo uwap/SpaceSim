@@ -2,14 +2,16 @@
 module Game where
 
 import Resources
+import Render.RenderInfo
 import Control.Lens
 import Control.Monad.State.Strict
 import Control.Monad.Identity
 import System.Random
 
 data GameInfo = GameInfo
-              { _randomGen :: !StdGen
-              , _resources :: !Resources
+              { _randomGen  :: !StdGen
+              , _resources  :: !Resources
+              , _renderInfo :: !RenderInfo
               }
 makeLenses ''GameInfo
 
@@ -17,7 +19,7 @@ mkGameInfo :: MonadIO m => m GameInfo
 mkGameInfo = mkGameInfo' <$> liftIO newStdGen
 
 mkGameInfo' :: StdGen -> GameInfo
-mkGameInfo' ran = GameInfo ran mkResources
+mkGameInfo' ran = GameInfo ran mkResources mkRenderInfo
 
 type GameT m a = StateT GameInfo m a
 type Game a    = GameT Identity a

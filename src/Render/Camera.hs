@@ -16,5 +16,8 @@ data Camera = Camera { _scale          :: Scale
                      }
 makeLenses ''Camera
 
-apply :: MonadIO m => Camera -> m ()
-apply cam = return ()
+mkCamera :: Camera
+mkCamera = Camera (V2 1 1) (V2 0 0) (V2 0 0)
+
+applyCamera :: MonadIO m => Camera -> m ()
+applyCamera cam = return ()

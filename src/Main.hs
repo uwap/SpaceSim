@@ -12,6 +12,7 @@ import Init.Resources
 import Game
 import Entity
 import Resources
+import Render.RenderInfo
 
 windowConfig :: (T.Text, SDL.WindowConfig)
 windowConfig = ("Space Sim", SDL.defaultWindow
@@ -55,6 +56,7 @@ mainLoop window = do
 
 render :: MonadIO m => GameT m ()
 render = do
+  applyCamera =<< use (renderInfo . camera)
   texs <- use (resources . textures)
   let tex      = texs ^. at "Rockfloor.png"
       entities = [tile (V2 x y) (V2 32 32) tex | x <- [0,32..640], y <- [0,32..640]]
