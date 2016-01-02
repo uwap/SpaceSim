@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Main where
 
 import Control.Lens
@@ -50,12 +51,24 @@ mainLoop window = do
   SDL.glSwapWindow window
   event <- SDL.pollEvent
   case SDL.eventPayload <$> event of
-    Just SDL.QuitEvent -> return ()
-    _                  -> mainLoop window
+    Just SDL.QuitEvent           -> return ()
+    Just (SDL.KeyboardEvent dat) -> keyboardEvent dat >> mainLoop window
+    _                            -> mainLoop window
   
+keyboardEvent :: Monad m => SDL.KeyboardEventData -> GameT m ()
+keyboardEvent SDL.KeyboardEventData { .. } =
+  case SDL.keysymKeycode keyboardEventKeysym of
+    SDL.KeycodeQ -> renderInfo . camera . scale += V2 0.1 0.1
+    SDL.KeycodeE -> renderInfo . camera . scale -= V2 0.1 0.1
+    SDL.KeycodeW -> renderInfo . camera . transformation += V2 0 1
+    SDL.KeycodeS -> renderInfo . camera . transformation -= V2 0 1
+    SDL.KeycodeA -> renderInfo . camera . transformation += V2 1 0
+    SDL.KeycodeD -> renderInfo . camera . transformation -= V2 1 0
+    _ -> return ()
 
 render :: MonadIO m => GameT m ()
 render = do
+  glLoadIdentity
   applyCamera =<< use (renderInfo . camera)
   texs <- use (resources . textures)
   let tex      = texs ^. at "Rockfloor.png"

@@ -20,4 +20,6 @@ mkCamera :: Camera
 mkCamera = Camera (V2 1 1) (V2 0 0) (V2 0 0)
 
 applyCamera :: MonadIO m => Camera -> m ()
-applyCamera cam = return ()
+applyCamera cam = do
+  glScaled (cam ^. scale ._x) (cam ^. scale ._y) 1
+  glTranslated (cam ^. transformation ._x) (cam ^. transformation ._y) 0
